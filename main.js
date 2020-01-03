@@ -1,5 +1,24 @@
 let sectionsSnapshot;
-let showAll = false;
+let showAll = true;
+
+const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
+<input id="showAll" type="checkbox" />
+<label id="toggleLabel" for="showAll">
+  <div
+    class="can-toggle__switch"
+    data-checked="Unwatched"
+    data-unchecked="All"
+  ></div>
+</label>
+</div>`;
+
+function createElementFromHTML(htmlString) {
+  var div = document.createElement('div');
+  div.innerHTML = htmlString.trim();
+
+  // Change this to div.childNodes to support multiple top-level nodes
+  return div.firstChild;
+}
 
 function getSections() {
   // Get all sections from page
@@ -177,6 +196,8 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
   if (episodeFromSnapshot && episodeFromSnapshot.finished) {
     if (!showAll) {
       episode.classList.add('hideElement');
+    } else {
+      episode.classList.remove('hideElement');
     }
     episodeName.classList.add('finished');
   } else {
@@ -250,7 +271,6 @@ const database = firebase.firestore();
 
 const waitForSections = setInterval(() => {
   const checkSections = getSections();
-  console.log('checkSections', checkSections);
 
   if (checkSections.length > 0) {
     clearInterval(waitForSections);
@@ -270,6 +290,19 @@ const waitForSections = setInterval(() => {
           .addEventListener('input', () => setTimeout(markFinished, 10));
 
         markFinished();
+
+        const toggle = createElementFromHTML(toggleDiv);
+
+        document
+          .querySelector(
+            'body > div > div > div > div > div._main > div.Contents > div._summary'
+          )
+          .insertAdjacentElement('afterend', toggle);
+
+        document.querySelector('#showAll').addEventListener('change', () => {
+          showAll = !showAll;
+          markFinished();
+        });
 
         updateSnapshot(database);
       });

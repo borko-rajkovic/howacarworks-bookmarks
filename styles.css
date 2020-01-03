@@ -5,3 +5,11 @@
 .finished {
   color: indianred;
 }
+
+#toggleLabel {
+  cursor: pointer;
+}
+
+.top-offset {
+  padding-top: 20px;
+}

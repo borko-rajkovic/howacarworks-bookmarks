@@ -7,7 +7,7 @@
     {
       "matches": ["https://www.howacarworks.com/video-course/watch*"],
       "js": ["firebase-app.js", "firebase-firestore.js", "main.js"],
-      "css": ["styles.css"]
+      "css": ["styles.css", "toggle.css"]
     }
   ],
   "manifest_version": 2
