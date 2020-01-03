@@ -1,0 +1,14 @@
+{
+  "name": "How a car works bookmarks",
+  "description": "Bookmarks for the website howacarworks.com",
+  "version": "1.0",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.howacarworks.com/video-course/watch*"],
+      "js": ["firebase-app.js", "firebase-firestore.js", "main.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "manifest_version": 2
+}

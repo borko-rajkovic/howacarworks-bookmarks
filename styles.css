@@ -1,0 +1,7 @@
+.hideElement {
+  display: none;
+}
+
+.finished {
+  color: indianred;
+}
