@@ -163,22 +163,6 @@ function checkSnapshot() {
   };
 }
 
-function getFinished() {
-  return sectionsSnapshot.map(s => {
-    const newS = Object.assign({}, s);
-    newS.EPISODES = newS.EPISODES.filter(e => e.finished);
-    return newS;
-  });
-}
-
-function getUnfinished() {
-  return sectionsSnapshot.map(s => {
-    const newS = Object.assign({}, s);
-    newS.EPISODES = newS.EPISODES.filter(e => !e.finished);
-    return newS;
-  });
-}
-
 function writeToFirestore() {
   database
     .collection('personal')
