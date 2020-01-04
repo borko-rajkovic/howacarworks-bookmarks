@@ -1,9 +1,3 @@
-// Toggle switch
-// https://codepen.io/personable/pen/stpwD
-
-// Checkbox
-// https://codepen.io/andreasstorm/pen/aXYzqg
-
 let sectionsSnapshot;
 let showAll = true;
 let clearButtonEventListenerSet = false;
@@ -14,7 +8,10 @@ let episodesCount = 0;
 let userId;
 let userEmail;
 
-const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
+// Toggle switch
+// https://codepen.io/personable/pen/stpwD
+
+const _templateToggleDiv = () => `<div class="can-toggle demo-rebrand-1 top-offset">
 <input id="showAll" type="checkbox" />
 <label id="toggleLabel" for="showAll">
   <div
@@ -25,25 +22,15 @@ const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
 </label>
 </div>`;
 
-const checkboxChecked = `<div class="customCheckBox">
-<input type="checkbox" class="notDisplayed" checked="checked" />
-<label class="cbx cbx-checked">
-  <div class="flip cbx-flip-checked">
-    <div class="front"></div>
+// Checkbox
+// https://codepen.io/andreasstorm/pen/aXYzqg
 
-    <div class="back">
-      <svg width="16" height="14" viewBox="0 0 16 14">
-        <path d="M2 8.5L6 12.5L14 1.5"></path>
-      </svg>
-    </div>
-  </div>
-</label>
-</div>`;
-
-const checkboxUnchecked = `<div class="customCheckBox">
-<input type="checkbox" class="notDisplayed" />
-<label class="cbx">
-  <div class="flip">
+const _templateCheckbox = checked => `<div class="customCheckBox">
+<input type="checkbox" class="notDisplayed" ${
+  checked ? 'checked="checked"' : ''
+} />
+<label class="cbx ${checked ? 'cbx-checked' : ''}">
+  <div class="flip ${checked ? 'cbx-flip-checked' : ''}">
     <div class="front"></div>
 
     <div class="back">
@@ -202,9 +189,7 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episodesTotalTime += durationSeconds;
   }
 
-  const checkbox = createElementFromHTML(
-    checked ? checkboxChecked : checkboxUnchecked
-  );
+  const checkbox = createElementFromHTML(_templateCheckbox(checked));
 
   if (!episode.querySelector('div.customCheckBox')) {
     episode
@@ -396,7 +381,7 @@ async function main() {
       markFinishedAndAttachCheckbox();
 
       if (!toggle) {
-        toggle = createElementFromHTML(toggleDiv);
+        toggle = createElementFromHTML(_templateToggleDiv());
 
         document
           .querySelector(
