@@ -1,5 +1,12 @@
+// Toggle switch
+// https://codepen.io/personable/pen/stpwD
+
+// Checkbox
+// https://codepen.io/andreasstorm/pen/aXYzqg
+
 let sectionsSnapshot;
 let showAll = true;
+let clearButtonEventListenerSet = false;
 
 const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
 <input id="showAll" type="checkbox" />
@@ -9,6 +16,36 @@ const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
     data-checked="Unwatched"
     data-unchecked="All"
   ></div>
+</label>
+</div>`;
+
+const checkboxChecked = `<div class="customCheckBox">
+<input type="checkbox" class="notDisplayed" checked="checked" />
+<label class="cbx cbx-checked">
+  <div class="flip cbx-flip-checked">
+    <div class="front"></div>
+
+    <div class="back">
+      <svg width="16" height="14" viewBox="0 0 16 14">
+        <path d="M2 8.5L6 12.5L14 1.5"></path>
+      </svg>
+    </div>
+  </div>
+</label>
+</div>`;
+
+const checkboxUnchecked = `<div class="customCheckBox">
+<input type="checkbox" class="notDisplayed" />
+<label class="cbx">
+  <div class="flip">
+    <div class="front"></div>
+
+    <div class="back">
+      <svg width="16" height="14" viewBox="0 0 16 14">
+        <path d="M2 8.5L6 12.5L14 1.5"></path>
+      </svg>
+    </div>
+  </div>
 </label>
 </div>`;
 
@@ -138,13 +175,6 @@ function getUnfinished() {
   });
 }
 
-function validateSnapshot() {
-  const result = checkSnapshot();
-  if (!result) return;
-  const { oldSections, newSnapshot } = result;
-  console.log('PLEASE UPDATE SNAPSHOT', oldSections, newSnapshot);
-}
-
 function writeToFirestore(database) {
   database
     .collection('personal')
@@ -158,6 +188,13 @@ function writeToFirestore(database) {
     .catch(function(error) {
       console.error('Error writing document: ', error);
     });
+}
+
+function validateSnapshot() {
+  const result = checkSnapshot();
+  if (!result) return;
+  const { oldSections, newSnapshot } = result;
+  console.log('PLEASE UPDATE SNAPSHOT', oldSections, newSnapshot);
 }
 
 function updateSnapshot(database) {
@@ -193,7 +230,8 @@ function formatSections(sections, asObject = false) {
 }
 
 function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
-  if (episodeFromSnapshot && episodeFromSnapshot.finished) {
+  const checked = episodeFromSnapshot && episodeFromSnapshot.finished;
+  if (checked) {
     if (!showAll) {
       episode.classList.add('hideElement');
     } else {
@@ -204,9 +242,21 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episode.classList.remove('hideElement');
     episodeName.classList.remove('finished');
   }
+
+  const checkbox = createElementFromHTML(
+    checked ? checkboxChecked : checkboxUnchecked
+  );
+
+  if (!episode.querySelector('div.customCheckBox')) {
+    episode
+      .querySelector('div._content')
+      .insertAdjacentElement('afterend', checkbox);
+  } else {
+    console.log('Already there');
+  }
 }
 
-function markFinished() {
+function markFinishedAndAttachCheckbox() {
   // Get all sections from page
   const sectionsRaw = document.querySelectorAll(
     'body > div > div > div > div > div._main > div.Contents >div.Section'
@@ -287,9 +337,26 @@ const waitForSections = setInterval(() => {
           .querySelector(
             'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > input'
           )
-          .addEventListener('input', () => setTimeout(markFinished, 10));
+          .addEventListener('input', () =>
+            setTimeout(() => {
+              const clearButton = document.querySelector(
+                'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
+              );
+              if (clearButton && !clearButtonEventListenerSet) {
+                clearButtonEventListenerSet = true;
+                clearButton.addEventListener('click', () => {
+                  setTimeout(() => {
+                    markFinishedAndAttachCheckbox();
+                  }, 10);
+                });
+              } else if (!clearButton && clearButtonEventListenerSet) {
+                clearButtonEventListenerSet = false;
+              }
+              markFinishedAndAttachCheckbox();
+            }, 10)
+          );
 
-        markFinished();
+        markFinishedAndAttachCheckbox();
 
         const toggle = createElementFromHTML(toggleDiv);
 
@@ -301,12 +368,10 @@ const waitForSections = setInterval(() => {
 
         document.querySelector('#showAll').addEventListener('change', () => {
           showAll = !showAll;
-          markFinished();
+          markFinishedAndAttachCheckbox();
         });
 
         updateSnapshot(database);
       });
   }
 }, 500);
-
-// https://codepen.io/personable/pen/stpwD

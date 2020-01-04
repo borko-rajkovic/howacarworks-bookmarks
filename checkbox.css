@@ -1,5 +1,11 @@
-.customCheckbox {
+._title {
+  width: 210px;
+}
+
+.customCheckBox {
   text-align: right;
+  padding-right: 22px;
+  padding-top: 5px;
 }
 
 .notDisplayed {
@@ -10,9 +16,9 @@
   -webkit-perspective: 20;
   perspective: 20;
   position: absolute;
-  border: 2px solid #e8e8eb;
+  border: 1px solid #e8e8eb;
   background: #e8e8eb;
-  border-radius: 4px;
+  border-radius: 3px;
   transform: translate3d(0, 0, 0);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -25,8 +31,8 @@
   transition: all 0.4s ease;
   transform-style: preserve-3d;
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 .cbx-checked {
   border-color: indianred;
@@ -40,9 +46,9 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 1px;
 }
 .front {
   background: #fff;
@@ -53,11 +59,11 @@
   background: indianred;
   text-align: center;
   color: #fff;
-  line-height: 20px;
+  line-height: 18px;
   box-shadow: 0 0 0 1px indianred;
 }
 .back svg {
-  margin-top: 3px;
+  margin-top: 2px;
   fill: none;
 }
 .back svg path {
