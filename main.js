@@ -161,6 +161,7 @@ function updateSnapshot() {
 }
 
 function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
+  // give css classes to episodes according to their state
   const checked = episodeFromSnapshot && episodeFromSnapshot.finished;
   if (checked) {
     if (!showAllEpisodes) {
@@ -174,6 +175,7 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episodeName.classList.remove('finished');
   }
 
+  // count number of episodes and duration time
   if (!checked || showAllEpisodes) {
     episodesCount++;
 
@@ -185,24 +187,34 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episodesTotalTime += durationSeconds;
   }
 
+  // if there is no checkbox, add one
   if (!episode.querySelector('div.customCheckBox')) {
+    // creating checkbox
     const checkbox = createElementFromHTML(_templateCheckbox(checked));
 
     episode
       .querySelector('div._content')
       .insertAdjacentElement('afterend', checkbox);
+    //------------------------------------------------------------
 
+    // on label click stop propagation and do checkbox input click
     episode
       .querySelector('div.customCheckBox > label')
       .addEventListener('click', event => {
         event.stopPropagation();
         checkbox.parentElement.querySelector('input').click();
       });
+    //------------------------------------------------------------
 
     const input = episode.querySelector('div.customCheckBox > input');
+
+    // on checkbox input click stop propagation
     input.addEventListener('click', event => {
       event.stopPropagation();
     });
+    //------------------------------------------------------------
+
+    // on checkbox input change animate checkbox label and write to firestore
     input.addEventListener('change', event => {
       event.stopPropagation();
       if (input.checked) {
@@ -224,11 +236,15 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
         .find(e => e.name === episodeName.innerHTML);
 
       episodeForUpdate.finished = input.checked;
+
+      // use timeout because css classes animation will last for 300ms
       setTimeout(() => {
         writeToFirestore();
       }, 300);
     });
+    //------------------------------------------------------------
   } else {
+    // for existing checkbox, if snapshot changed, synchronize checkbox input
     const input = episode.querySelector('div.customCheckBox > input');
     if (checked !== input.checked) {
       input.click();
