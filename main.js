@@ -1,8 +1,8 @@
 let sectionsSnapshot;
-let showAll = true;
+let showAllEpisodes = true;
 let clearButtonEventListenerSet = false;
 let database = null;
-let toggle = null;
+let toggleDOMElement = null;
 let episodesTotalTime = 0;
 let episodesCount = 0;
 let userId;
@@ -163,7 +163,7 @@ function updateSnapshot() {
 function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
   const checked = episodeFromSnapshot && episodeFromSnapshot.finished;
   if (checked) {
-    if (!showAll) {
+    if (!showAllEpisodes) {
       episode.classList.add('hideElement');
     } else {
       episode.classList.remove('hideElement');
@@ -174,7 +174,7 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episodeName.classList.remove('finished');
   }
 
-  if (!checked || showAll) {
+  if (!checked || showAllEpisodes) {
     episodesCount++;
 
     const duration = episodeFromSnapshot.duration;
@@ -369,17 +369,17 @@ async function main() {
 
     markFinishedAndAttachCheckbox();
 
-    if (!toggle) {
-      toggle = createElementFromHTML(_templateToggleDiv());
+    if (!toggleDOMElement) {
+      toggleDOMElement = createElementFromHTML(_templateToggleDiv());
 
       document
         .querySelector(
           'body > div > div > div > div > div._main > div.Contents > div._summary'
         )
-        .insertAdjacentElement('afterend', toggle);
+        .insertAdjacentElement('afterend', toggleDOMElement);
 
       document.querySelector('#showAll').addEventListener('change', () => {
-        showAll = !showAll;
+        showAllEpisodes = !showAllEpisodes;
         markFinishedAndAttachCheckbox();
       });
     }
