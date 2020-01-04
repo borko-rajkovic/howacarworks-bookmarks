@@ -3,6 +3,13 @@
   "description": "Bookmarks for the website howacarworks.com",
   "version": "1.0",
   "permissions": ["activeTab"],
+  "browser_action": {
+    "default_icon": {
+      "16": "images/wrench16.png",
+      "24": "images/wrench24.png",
+      "32": "images/wrench32.png"
+    }
+  },
   "content_scripts": [
     {
       "matches": ["https://www.howacarworks.com/video-course/watch*"],
