@@ -11,6 +11,8 @@ let database = null;
 let toggle = null;
 let episodesTotalTime = 0;
 let episodesCount = 0;
+let userId;
+let userEmail;
 
 const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
 <input id="showAll" type="checkbox" />
@@ -118,8 +120,6 @@ function checkSnapshot() {
   const oldJSON = JSON.stringify(oldSectionsClean);
   const newJSON = JSON.stringify(newSections);
 
-  console.log('newSections', newSections);
-
   if (newSections.length === 0 || oldJSON === newJSON) {
     return;
   }
@@ -165,10 +165,11 @@ function checkSnapshot() {
 
 function writeToFirestore() {
   database
-    .collection('personal')
-    .doc('howacarworks2')
+    .collection('bookmarks')
+    .doc(userId)
     .set({
-      sectionsSnapshot
+      sectionsSnapshot,
+      email: userEmail
     })
     .then(function() {
       console.log('Document successfully written!');
@@ -176,13 +177,6 @@ function writeToFirestore() {
     .catch(function(error) {
       console.error('Error writing document: ', error);
     });
-}
-
-function validateSnapshot() {
-  const result = checkSnapshot();
-  if (!result) return;
-  const { oldSections, newSnapshot } = result;
-  console.log('PLEASE UPDATE SNAPSHOT', oldSections, newSnapshot);
 }
 
 function updateSnapshot() {
@@ -255,7 +249,6 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
       .querySelector('div.customCheckBox > label')
       .addEventListener('click', event => {
         event.stopPropagation();
-        console.log('Click on label');
         checkbox.parentElement.querySelector('input').click();
       });
 
@@ -284,13 +277,10 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
         .find(e => e.name === episodeName.innerHTML);
 
       episodeForUpdate.finished = input.checked;
-      console.log('Change on checkbox input', sectionsSnapshot);
       setTimeout(() => {
         writeToFirestore();
       }, 300);
     });
-  } else {
-    console.log('Already there');
   }
 }
 
@@ -357,13 +347,13 @@ function markFinishedAndAttachCheckbox() {
 }
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDyE4p0mCYfd8lwJiUolw0GR2BBwhDIbZs',
-  authDomain: 'portfolio-d99ae.firebaseapp.com',
-  databaseURL: 'https://portfolio-d99ae.firebaseio.com',
-  projectId: 'portfolio-d99ae',
-  storageBucket: 'portfolio-d99ae.appspot.com',
-  messagingSenderId: '961224126421',
-  appId: '1:961224126421:web:82e45e80df94d706cc575c'
+  apiKey: 'AIzaSyAFq8Y_fF5wSlm221wpD76rMHml-cQgRmY',
+  authDomain: 'howacarworks-bookmarks.firebaseapp.com',
+  databaseURL: 'https://howacarworks-bookmarks.firebaseio.com',
+  projectId: 'howacarworks-bookmarks',
+  storageBucket: 'howacarworks-bookmarks.appspot.com',
+  messagingSenderId: '1053356756342',
+  appId: '1:1053356756342:web:62b1db235749c2e49e3e57'
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -375,56 +365,83 @@ const waitForSections = setInterval(() => {
 
   if (checkSections.length > 0) {
     clearInterval(waitForSections);
-    database
-      .collection('personal')
-      .doc('howacarworks2')
-      .onSnapshot(firestoreDoc => {
-        sectionsSnapshot = firestoreDoc.data().sectionsSnapshot;
 
-        console.log('sectionsSnapshot', sectionsSnapshot);
-        validateSnapshot();
+    main();
+  }
+}, 50);
+
+async function main() {
+  const reactDataPropsRaw = document
+    .querySelector('body > div > div > div')
+    .getAttribute('data-react-props');
+
+  const reactDataProps = JSON.parse(reactDataPropsRaw);
+
+  if (!reactDataProps.user) {
+    return;
+  }
+
+  userId = reactDataProps.user.id.toString();
+  userEmail = reactDataProps.user.email;
+
+  const docSnapshot = await database
+    .collection('bookmarks')
+    .doc(userId)
+    .get();
+
+  if (!docSnapshot.exists) {
+    database
+      .collection('bookmarks')
+      .doc(userId)
+      .set({ sectionsSnapshot: [], email: userEmail });
+  }
+
+  database
+    .collection('bookmarks')
+    .doc(userId)
+    .onSnapshot(firestoreDoc => {
+      sectionsSnapshot = firestoreDoc.data().sectionsSnapshot;
+
+      updateSnapshot();
+
+      document
+        .querySelector(
+          'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > input'
+        )
+        .addEventListener('input', () =>
+          setTimeout(() => {
+            const clearButton = document.querySelector(
+              'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
+            );
+            if (clearButton && !clearButtonEventListenerSet) {
+              clearButtonEventListenerSet = true;
+              clearButton.addEventListener('click', () => {
+                setTimeout(() => {
+                  markFinishedAndAttachCheckbox();
+                }, 10);
+              });
+            } else if (!clearButton && clearButtonEventListenerSet) {
+              clearButtonEventListenerSet = false;
+            }
+            markFinishedAndAttachCheckbox();
+          }, 10)
+        );
+
+      markFinishedAndAttachCheckbox();
+
+      if (!toggle) {
+        toggle = createElementFromHTML(toggleDiv);
 
         document
           .querySelector(
-            'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > input'
+            'body > div > div > div > div > div._main > div.Contents > div._summary'
           )
-          .addEventListener('input', () =>
-            setTimeout(() => {
-              const clearButton = document.querySelector(
-                'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
-              );
-              if (clearButton && !clearButtonEventListenerSet) {
-                clearButtonEventListenerSet = true;
-                clearButton.addEventListener('click', () => {
-                  setTimeout(() => {
-                    markFinishedAndAttachCheckbox();
-                  }, 10);
-                });
-              } else if (!clearButton && clearButtonEventListenerSet) {
-                clearButtonEventListenerSet = false;
-              }
-              markFinishedAndAttachCheckbox();
-            }, 10)
-          );
+          .insertAdjacentElement('afterend', toggle);
 
-        markFinishedAndAttachCheckbox();
-
-        if (!toggle) {
-          toggle = createElementFromHTML(toggleDiv);
-
-          document
-            .querySelector(
-              'body > div > div > div > div > div._main > div.Contents > div._summary'
-            )
-            .insertAdjacentElement('afterend', toggle);
-
-          document.querySelector('#showAll').addEventListener('change', () => {
-            showAll = !showAll;
-            markFinishedAndAttachCheckbox();
-          });
-        }
-
-        updateSnapshot();
-      });
-  }
-}, 500);
+        document.querySelector('#showAll').addEventListener('change', () => {
+          showAll = !showAll;
+          markFinishedAndAttachCheckbox();
+        });
+      }
+    });
+}
