@@ -9,6 +9,8 @@ let showAll = true;
 let clearButtonEventListenerSet = false;
 let database = null;
 let toggle = null;
+let episodesTotalTime = 0;
+let episodesCount = 0;
 
 const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
 <input id="showAll" type="checkbox" />
@@ -245,6 +247,17 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episodeName.classList.remove('finished');
   }
 
+  if (!checked || showAll) {
+    episodesCount++;
+
+    const duration = episodeFromSnapshot.duration;
+    const durationStrings = duration.split(':');
+    const durationSeconds =
+      Number(durationStrings[0]) * 60 + Number(durationStrings[1]);
+
+    episodesTotalTime += durationSeconds;
+  }
+
   const checkbox = createElementFromHTML(
     checked ? checkboxChecked : checkboxUnchecked
   );
@@ -303,6 +316,9 @@ function markFinishedAndAttachCheckbox() {
     'body > div > div > div > div > div._main > div.Contents >div.Section'
   );
 
+  episodesTotalTime = 0;
+  episodesCount = 0;
+
   if (sectionsRaw.length > 0) {
     sectionsRaw.forEach(section => {
       const sectionName = section.querySelector('h2').innerText;
@@ -344,6 +360,16 @@ function markFinishedAndAttachCheckbox() {
       processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode);
     });
   }
+
+  // document.querySelector("body > div > div > div > div > div._main > div.Contents > div._summary").innerText = '123 episodes / 14h16m';
+
+  const totalMinutes = Math.round(episodesTotalTime / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const leftMinutes = totalMinutes - totalHours * 60;
+
+  document.querySelector(
+    'body > div > div > div > div > div._main > div.Contents > div._summary'
+  ).innerText = `${episodesCount} episodes / ${totalHours}h${leftMinutes}m`;
 }
 
 const firebaseConfig = {
