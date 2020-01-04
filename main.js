@@ -7,6 +7,8 @@
 let sectionsSnapshot;
 let showAll = true;
 let clearButtonEventListenerSet = false;
+let database = null;
+let toggle = null;
 
 const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
 <input id="showAll" type="checkbox" />
@@ -175,7 +177,7 @@ function getUnfinished() {
   });
 }
 
-function writeToFirestore(database) {
+function writeToFirestore() {
   database
     .collection('personal')
     .doc('howacarworks2')
@@ -197,12 +199,12 @@ function validateSnapshot() {
   console.log('PLEASE UPDATE SNAPSHOT', oldSections, newSnapshot);
 }
 
-function updateSnapshot(database) {
+function updateSnapshot() {
   const result = checkSnapshot();
   if (!result) return;
   const { newSnapshot } = result;
   sectionsSnapshot = newSnapshot;
-  writeToFirestore(database);
+  writeToFirestore();
 }
 
 function formatSections(sections, asObject = false) {
@@ -251,6 +253,45 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episode
       .querySelector('div._content')
       .insertAdjacentElement('afterend', checkbox);
+
+    episode
+      .querySelector('div.customCheckBox > label')
+      .addEventListener('click', event => {
+        event.stopPropagation();
+        console.log('Click on label');
+        checkbox.parentElement.querySelector('input').click();
+      });
+
+    const input = episode.querySelector('div.customCheckBox > input');
+    input.addEventListener('click', event => {
+      event.stopPropagation();
+    });
+    input.addEventListener('change', event => {
+      event.stopPropagation();
+      if (input.checked) {
+        input.parentElement.querySelector('label').classList.add('cbx-checked');
+        input.parentElement
+          .querySelector('label > div')
+          .classList.add('cbx-flip-checked');
+      } else {
+        input.parentElement
+          .querySelector('label')
+          .classList.remove('cbx-checked');
+        input.parentElement
+          .querySelector('label > div')
+          .classList.remove('cbx-flip-checked');
+      }
+      const episodeForUpdate = sectionsSnapshot
+        .map(s => s.EPISODES)
+        .reduce((acc, val) => acc.concat(val), [])
+        .find(e => e.name === episodeName.innerHTML);
+
+      episodeForUpdate.finished = input.checked;
+      console.log('Change on checkbox input', sectionsSnapshot);
+      setTimeout(() => {
+        writeToFirestore();
+      }, 300);
+    });
   } else {
     console.log('Already there');
   }
@@ -317,7 +358,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-const database = firebase.firestore();
+database = firebase.firestore();
 
 const waitForSections = setInterval(() => {
   const checkSections = getSections();
@@ -358,20 +399,22 @@ const waitForSections = setInterval(() => {
 
         markFinishedAndAttachCheckbox();
 
-        const toggle = createElementFromHTML(toggleDiv);
+        if (!toggle) {
+          toggle = createElementFromHTML(toggleDiv);
 
-        document
-          .querySelector(
-            'body > div > div > div > div > div._main > div.Contents > div._summary'
-          )
-          .insertAdjacentElement('afterend', toggle);
+          document
+            .querySelector(
+              'body > div > div > div > div > div._main > div.Contents > div._summary'
+            )
+            .insertAdjacentElement('afterend', toggle);
 
-        document.querySelector('#showAll').addEventListener('change', () => {
-          showAll = !showAll;
-          markFinishedAndAttachCheckbox();
-        });
+          document.querySelector('#showAll').addEventListener('change', () => {
+            showAll = !showAll;
+            markFinishedAndAttachCheckbox();
+          });
+        }
 
-        updateSnapshot(database);
+        updateSnapshot();
       });
   }
 }, 500);
