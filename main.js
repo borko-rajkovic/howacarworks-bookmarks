@@ -185,9 +185,9 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
     episodesTotalTime += durationSeconds;
   }
 
-  const checkbox = createElementFromHTML(_templateCheckbox(checked));
-
   if (!episode.querySelector('div.customCheckBox')) {
+    const checkbox = createElementFromHTML(_templateCheckbox(checked));
+
     episode
       .querySelector('div._content')
       .insertAdjacentElement('afterend', checkbox);
@@ -228,6 +228,11 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
         writeToFirestore();
       }, 300);
     });
+  } else {
+    const input = episode.querySelector('div.customCheckBox > input');
+    if (checked !== input.checked) {
+      input.click();
+    }
   }
 }
 
