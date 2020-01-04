@@ -7,6 +7,7 @@ let episodesTotalTime = 0;
 let episodesCount = 0;
 let userId;
 let userEmail;
+let firestoreDoc;
 
 // Toggle switch
 // https://codepen.io/personable/pen/stpwD
@@ -88,9 +89,7 @@ function getSections() {
 }
 
 function writeToFirestore() {
-  database
-    .collection('bookmarks')
-    .doc(userId)
+  firestoreDoc
     .set({
       sectionsSnapshot,
       email: userEmail
@@ -335,64 +334,57 @@ async function main() {
   userId = reactDataProps.user.id.toString();
   userEmail = reactDataProps.user.email;
 
-  const docSnapshot = await database
-    .collection('bookmarks')
-    .doc(userId)
-    .get();
+  firestoreDoc = database.collection('bookmarks').doc(userId);
+
+  const docSnapshot = await firestoreDoc.get();
 
   if (!docSnapshot.exists) {
-    database
-      .collection('bookmarks')
-      .doc(userId)
-      .set({ sectionsSnapshot: [], email: userEmail });
+    firestoreDoc.set({ sectionsSnapshot: [], email: userEmail });
   }
 
-  database
-    .collection('bookmarks')
-    .doc(userId)
-    .onSnapshot(firestoreDoc => {
-      sectionsSnapshot = firestoreDoc.data().sectionsSnapshot;
+  firestoreDoc.onSnapshot(doc => {
+    sectionsSnapshot = doc.data().sectionsSnapshot;
 
-      updateSnapshot();
+    updateSnapshot();
+
+    document
+      .querySelector(
+        'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > input'
+      )
+      .addEventListener('input', () =>
+        setTimeout(() => {
+          const clearButton = document.querySelector(
+            'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
+          );
+          if (clearButton && !clearButtonEventListenerSet) {
+            clearButtonEventListenerSet = true;
+            clearButton.addEventListener('click', () => {
+              setTimeout(() => {
+                markFinishedAndAttachCheckbox();
+              }, 10);
+            });
+          } else if (!clearButton && clearButtonEventListenerSet) {
+            clearButtonEventListenerSet = false;
+          }
+          markFinishedAndAttachCheckbox();
+        }, 10)
+      );
+
+    markFinishedAndAttachCheckbox();
+
+    if (!toggle) {
+      toggle = createElementFromHTML(_templateToggleDiv());
 
       document
         .querySelector(
-          'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > input'
+          'body > div > div > div > div > div._main > div.Contents > div._summary'
         )
-        .addEventListener('input', () =>
-          setTimeout(() => {
-            const clearButton = document.querySelector(
-              'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
-            );
-            if (clearButton && !clearButtonEventListenerSet) {
-              clearButtonEventListenerSet = true;
-              clearButton.addEventListener('click', () => {
-                setTimeout(() => {
-                  markFinishedAndAttachCheckbox();
-                }, 10);
-              });
-            } else if (!clearButton && clearButtonEventListenerSet) {
-              clearButtonEventListenerSet = false;
-            }
-            markFinishedAndAttachCheckbox();
-          }, 10)
-        );
+        .insertAdjacentElement('afterend', toggle);
 
-      markFinishedAndAttachCheckbox();
-
-      if (!toggle) {
-        toggle = createElementFromHTML(_templateToggleDiv());
-
-        document
-          .querySelector(
-            'body > div > div > div > div > div._main > div.Contents > div._summary'
-          )
-          .insertAdjacentElement('afterend', toggle);
-
-        document.querySelector('#showAll').addEventListener('change', () => {
-          showAll = !showAll;
-          markFinishedAndAttachCheckbox();
-        });
-      }
-    });
+      document.querySelector('#showAll').addEventListener('change', () => {
+        showAll = !showAll;
+        markFinishedAndAttachCheckbox();
+      });
+    }
+  });
 }
