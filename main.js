@@ -17,8 +17,8 @@ const toggleDiv = `<div class="can-toggle demo-rebrand-1 top-offset">
 <label id="toggleLabel" for="showAll">
   <div
     class="can-toggle__switch"
-    data-checked="Unwatched"
-    data-unchecked="All"
+    data-checked="Filter"
+    data-unchecked="Off"
   ></div>
 </label>
 </div>`;
