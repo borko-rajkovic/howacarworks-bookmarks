@@ -100,7 +100,23 @@ function getSections() {
   return sections;
 }
 
-function checkSnapshot() {
+function writeToFirestore() {
+  database
+    .collection('bookmarks')
+    .doc(userId)
+    .set({
+      sectionsSnapshot,
+      email: userEmail
+    })
+    .then(function() {
+      console.log('Document successfully written!');
+    })
+    .catch(function(error) {
+      console.error('Error writing document: ', error);
+    });
+}
+
+function updateSnapshot() {
   const newSections = getSections();
   const oldSections = sectionsSnapshot;
 
@@ -157,58 +173,8 @@ function checkSnapshot() {
     newSnapshot.push(newSectionProcessed);
   });
 
-  return {
-    oldSections,
-    newSnapshot
-  };
-}
-
-function writeToFirestore() {
-  database
-    .collection('bookmarks')
-    .doc(userId)
-    .set({
-      sectionsSnapshot,
-      email: userEmail
-    })
-    .then(function() {
-      console.log('Document successfully written!');
-    })
-    .catch(function(error) {
-      console.error('Error writing document: ', error);
-    });
-}
-
-function updateSnapshot() {
-  const result = checkSnapshot();
-  if (!result) return;
-  const { newSnapshot } = result;
   sectionsSnapshot = newSnapshot;
   writeToFirestore();
-}
-
-function formatSections(sections, asObject = false) {
-  const formattedSections = asObject ? {} : [];
-  sections.forEach(s => {
-    const sectionName = s.NAME;
-    const episodes = s.EPISODES;
-    if (episodes.length > 0) {
-      if (asObject) {
-        formattedSections[sectionName] = [];
-      } else {
-        formattedSections.push(sectionName);
-      }
-    }
-    episodes.forEach(e => {
-      if (asObject) {
-        formattedSections[sectionName].push(e.name);
-      } else {
-        formattedSections.push(`\t${e.name}`);
-      }
-    });
-  });
-
-  return formattedSections;
 }
 
 function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
