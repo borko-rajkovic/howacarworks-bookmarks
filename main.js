@@ -158,7 +158,7 @@ function updateSnapshot() {
   writeToFirestore();
 }
 
-function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
+function processSingleEpisode(episodeFromSnapshot, episodeName, episode) {
   if (!episodeFromSnapshot) {
     return;
   }
@@ -254,7 +254,7 @@ function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
   }
 }
 
-function markFinishedAndAttachCheckbox() {
+function processEpisodes() {
   // Get all sections from page
   const sectionsRaw = document.querySelectorAll(
     'body > div > div > div > div > div._main > div.Contents >div.Section'
@@ -283,7 +283,7 @@ function markFinishedAndAttachCheckbox() {
             e => e.name === episodeName.innerHTML
           );
 
-          processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode);
+          processSingleEpisode(episodeFromSnapshot, episodeName, episode);
         });
       }
     });
@@ -295,17 +295,16 @@ function markFinishedAndAttachCheckbox() {
     filteredEpisodes.forEach(episode => {
       const episodeName = episode.querySelector('div._content > div._title');
 
-      // .map(x => x.s).reduce((acc,val) => acc.concat(val), [])
       const episodeFromSnapshot = sectionsSnapshot
         .map(s => s.EPISODES)
         .reduce((acc, val) => acc.concat(val), [])
         .find(e => e.name === episodeName.innerHTML);
 
-      processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode);
+      processSingleEpisode(episodeFromSnapshot, episodeName, episode);
     });
   }
 
-  // document.querySelector("body > div > div > div > div > div._main > div.Contents > div._summary").innerText = '123 episodes / 14h16m';
+  // display episodes count and total duration
 
   const totalMinutes = Math.round(episodesTotalTime / 60);
   const totalHours = Math.floor(totalMinutes / 60);
@@ -372,7 +371,7 @@ async function main() {
 
   document.querySelector('#showAll').addEventListener('change', () => {
     showAllEpisodes = !showAllEpisodes;
-    markFinishedAndAttachCheckbox();
+    processEpisodes();
   });
 
   firestoreDoc.onSnapshot(doc => {
@@ -393,16 +392,16 @@ async function main() {
             clearButtonEventListenerSet = true;
             clearButton.addEventListener('click', () => {
               setTimeout(() => {
-                markFinishedAndAttachCheckbox();
+                processEpisodes();
               }, 10);
             });
           } else if (!clearButton && clearButtonEventListenerSet) {
             clearButtonEventListenerSet = false;
           }
-          markFinishedAndAttachCheckbox();
+          processEpisodes();
         }, 10)
       );
 
-    markFinishedAndAttachCheckbox();
+    processEpisodes();
   });
 }
