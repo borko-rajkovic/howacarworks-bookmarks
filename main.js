@@ -1,3 +1,4 @@
+// Start of code execution is after comment START_EXECUTION
 let sectionsSnapshot;
 let showAllEpisodes = true;
 let clearButtonEventListenerSet = false;
@@ -327,8 +328,9 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-// on page load sections are not loaded immediately, so we need to wait
+// START_EXECUTION
 const waitForSections = setInterval(() => {
+  // on page load sections are not loaded immediately, so we need to wait
   const checkSections = getSections();
 
   if (checkSections.length > 0) {
@@ -339,6 +341,7 @@ const waitForSections = setInterval(() => {
 }, 50);
 
 async function main() {
+  // take react props data and extract email and id; if none, exit from main()
   const reactDataPropsRaw = document
     .querySelector('body > div > div > div')
     .getAttribute('data-react-props');
@@ -351,7 +354,9 @@ async function main() {
 
   userId = reactDataProps.user.id.toString();
   userEmail = reactDataProps.user.email;
+  //------------------------------------------------------------
 
+  // if there is no document in firestore related to user id, create one
   const database = firebase.firestore();
   firestoreDoc = database.collection('bookmarks').doc(userId);
 
@@ -360,7 +365,9 @@ async function main() {
   if (!docSnapshot.exists) {
     firestoreDoc.set({ sectionsSnapshot: [], email: userEmail });
   }
+  //------------------------------------------------------------
 
+  // create toggle element for show all/unfinished episodes
   const toggleDOMElement = createElementFromHTML(_templateToggleDiv());
 
   document
@@ -373,35 +380,45 @@ async function main() {
     showAllEpisodes = !showAllEpisodes;
     processEpisodes();
   });
+  //------------------------------------------------------------
 
+  // on snapshot change update snapshot and process episodes
   firestoreDoc.onSnapshot(doc => {
     sectionsSnapshot = doc.data().sectionsSnapshot;
-
     updateSnapshot();
-
-    document
-      .querySelector(
-        'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > input'
-      )
-      .addEventListener('input', () =>
-        setTimeout(() => {
-          const clearButton = document.querySelector(
-            'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
-          );
-          if (clearButton && !clearButtonEventListenerSet) {
-            clearButtonEventListenerSet = true;
-            clearButton.addEventListener('click', () => {
-              setTimeout(() => {
-                processEpisodes();
-              }, 10);
-            });
-          } else if (!clearButton && clearButtonEventListenerSet) {
-            clearButtonEventListenerSet = false;
-          }
-          processEpisodes();
-        }, 10)
-      );
-
     processEpisodes();
   });
+  //------------------------------------------------------------
+
+  // add event listener on search box input
+  document
+    .querySelector(
+      'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > input'
+    )
+    .addEventListener('input', () =>
+      // if not using setTimeout, origin code overwrites result
+      setTimeout(() => {
+        processEpisodes();
+
+        // add event listener on clear button
+        const clearButton = document.querySelector(
+          'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
+        );
+        if (clearButton && !clearButtonEventListenerSet) {
+          // if there is clear button and it's not yet set, then add event listener
+          clearButtonEventListenerSet = true;
+          clearButton.addEventListener('click', () => {
+            // if not using setTimeout, origin code overwrites result
+            setTimeout(() => {
+              processEpisodes();
+            }, 0);
+          });
+        } else if (!clearButton && clearButtonEventListenerSet) {
+          // if there is no clear button and it's been set, then reset variable so next time it can be set
+          clearButtonEventListenerSet = false;
+        }
+        //------------------------------------------------------------
+      }, 0)
+    );
+  //------------------------------------------------------------
 }
