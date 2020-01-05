@@ -1,5 +1,6 @@
 {
-  "name": "How a car works bookmarks",
+  "name": "howacarworks.com bookmarks",
+  "short_name": "howacarworks",
   "description": "Bookmarks for the website howacarworks.com",
   "version": "0.0.0.1",
   "permissions": ["activeTab"],
