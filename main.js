@@ -1,8 +1,6 @@
 let sectionsSnapshot;
 let showAllEpisodes = true;
 let clearButtonEventListenerSet = false;
-let database = null;
-let toggleDOMElement = null;
 let episodesTotalTime = 0;
 let episodesCount = 0;
 let userId;
@@ -161,6 +159,10 @@ function updateSnapshot() {
 }
 
 function processEpisodeFromSnapshot(episodeFromSnapshot, episodeName, episode) {
+  if (!episodeFromSnapshot) {
+    return;
+  }
+
   // give css classes to episodes according to their state
   const checked = episodeFromSnapshot && episodeFromSnapshot.finished;
   if (checked) {
@@ -326,8 +328,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-database = firebase.firestore();
-
+// on page load sections are not loaded immediately, so we need to wait
 const waitForSections = setInterval(() => {
   const checkSections = getSections();
 
@@ -352,6 +353,7 @@ async function main() {
   userId = reactDataProps.user.id.toString();
   userEmail = reactDataProps.user.email;
 
+  const database = firebase.firestore();
   firestoreDoc = database.collection('bookmarks').doc(userId);
 
   const docSnapshot = await firestoreDoc.get();
@@ -359,6 +361,19 @@ async function main() {
   if (!docSnapshot.exists) {
     firestoreDoc.set({ sectionsSnapshot: [], email: userEmail });
   }
+
+  const toggleDOMElement = createElementFromHTML(_templateToggleDiv());
+
+  document
+    .querySelector(
+      'body > div > div > div > div > div._main > div.Contents > div._summary'
+    )
+    .insertAdjacentElement('afterend', toggleDOMElement);
+
+  document.querySelector('#showAll').addEventListener('change', () => {
+    showAllEpisodes = !showAllEpisodes;
+    markFinishedAndAttachCheckbox();
+  });
 
   firestoreDoc.onSnapshot(doc => {
     sectionsSnapshot = doc.data().sectionsSnapshot;
@@ -389,20 +404,5 @@ async function main() {
       );
 
     markFinishedAndAttachCheckbox();
-
-    if (!toggleDOMElement) {
-      toggleDOMElement = createElementFromHTML(_templateToggleDiv());
-
-      document
-        .querySelector(
-          'body > div > div > div > div > div._main > div.Contents > div._summary'
-        )
-        .insertAdjacentElement('afterend', toggleDOMElement);
-
-      document.querySelector('#showAll').addEventListener('change', () => {
-        showAllEpisodes = !showAllEpisodes;
-        markFinishedAndAttachCheckbox();
-      });
-    }
   });
 }
