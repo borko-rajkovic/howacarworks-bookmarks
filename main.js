@@ -7,7 +7,8 @@ let userId;
 let userEmail;
 let firestoreDoc;
 let filterOn = false;
-let episodes;
+let episodes = [];
+let currentURL;
 
 // Toggle switch
 // https://codepen.io/personable/pen/stpwD
@@ -375,6 +376,8 @@ const waitForSections = setInterval(() => {
 }, 50);
 
 async function main() {
+  await getEpisodes();
+
   // take react props data and extract email and id; if none, exit from main()
   const reactDataPropsRaw = document
     .querySelector('body > div > div > div')
