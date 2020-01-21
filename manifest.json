@@ -14,9 +14,15 @@
   "content_scripts": [
     {
       "matches": ["https://www.howacarworks.com/video-course/watch*"],
-      "js": ["firebase-app.js", "firebase-firestore.js", "main.js"],
+      "js": ["inject.js"],
+      "run_at": "document_idle",
       "css": ["styles.css", "toggle.css", "checkbox.css"]
     }
+  ],
+  "web_accessible_resources": [
+    "firebase-app.js",
+    "firebase-firestore.js",
+    "main.js"
   ],
   "manifest_version": 2
 }

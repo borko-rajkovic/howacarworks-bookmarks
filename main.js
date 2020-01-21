@@ -372,7 +372,7 @@ async function main() {
   } else {
     if (docSnapshot.data().filterOn) {
       filterOn = docSnapshot.data().filterOn;
-  }
+    }
   }
   //------------------------------------------------------------
 
