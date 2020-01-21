@@ -1,18 +1,18 @@
 // Start of code execution is after comment START_EXECUTION
 let sectionsSnapshot;
-let showAllEpisodes = true;
 let clearButtonEventListenerSet = false;
 let episodesTotalTime = 0;
 let episodesCount = 0;
 let userId;
 let userEmail;
 let firestoreDoc;
+let filterOn = false;
 
 // Toggle switch
 // https://codepen.io/personable/pen/stpwD
 
 const _templateToggleDiv = () => `<div class="can-toggle demo-rebrand-1 top-offset">
-<input id="showAll" type="checkbox" />
+<input id="showAll" type="checkbox" ${filterOn ? '' : 'checked'} />
 <label id="toggleLabel" for="showAll">
   <div
     class="can-toggle__switch"
@@ -91,7 +91,8 @@ function writeToFirestore() {
   firestoreDoc
     .set({
       sectionsSnapshot,
-      email: userEmail
+      email: userEmail,
+      filterOn
     })
     .catch(function(error) {
       console.error('Error writing document: ', error);
@@ -167,7 +168,7 @@ function processSingleEpisode(episodeFromSnapshot, episodeName, episode) {
   // give css classes to episodes according to their state
   const checked = episodeFromSnapshot && episodeFromSnapshot.finished;
   if (checked) {
-    if (!showAllEpisodes) {
+    if (!filterOn) {
       episode.classList.add('hideElement');
     } else {
       episode.classList.remove('hideElement');
@@ -179,7 +180,7 @@ function processSingleEpisode(episodeFromSnapshot, episodeName, episode) {
   }
 
   // count number of episodes and duration time
-  if (!checked || showAllEpisodes) {
+  if (!checked || filterOn) {
     episodesCount++;
 
     const duration = episodeFromSnapshot.duration;
@@ -363,7 +364,15 @@ async function main() {
   const docSnapshot = await firestoreDoc.get();
 
   if (!docSnapshot.exists) {
-    firestoreDoc.set({ sectionsSnapshot: [], email: userEmail });
+    firestoreDoc.set({
+      sectionsSnapshot: [],
+      email: userEmail,
+      filterOn
+    });
+  } else {
+    if (docSnapshot.data().filterOn) {
+      filterOn = docSnapshot.data().filterOn;
+  }
   }
   //------------------------------------------------------------
 
@@ -377,7 +386,8 @@ async function main() {
     .insertAdjacentElement('afterend', toggleDOMElement);
 
   document.querySelector('#showAll').addEventListener('change', () => {
-    showAllEpisodes = !showAllEpisodes;
+    filterOn = !filterOn;
+    writeToFirestore();
     processEpisodes();
   });
   //------------------------------------------------------------
@@ -385,6 +395,7 @@ async function main() {
   // on snapshot change update snapshot and process episodes
   firestoreDoc.onSnapshot(doc => {
     sectionsSnapshot = doc.data().sectionsSnapshot;
+    filterOn = doc.data().filterOn;
     updateSnapshot();
     processEpisodes();
   });
