@@ -7,6 +7,7 @@ let userId;
 let userEmail;
 let firestoreDoc;
 let filterOn = false;
+let episodes;
 
 // Toggle switch
 // https://codepen.io/personable/pen/stpwD
@@ -63,6 +64,23 @@ function createAnchor(downloadURL, fileName, inNewTab = true) {
   a.download = fileName + extension;
   a.innerText = fileName + extension;
   return a;
+}
+
+async function getEpisodes() {
+  const API_URL = window.API_URL;
+  const API_TOKEN = window.API_TOKEN;
+
+  const endpoint = `${API_URL}/courses/1?token=${API_TOKEN}`;
+
+  try {
+    const response = await fetch(endpoint);
+    const responseJSON = await response.json();
+    const data = responseJSON.data;
+
+    episodes = data.sections.map(s => s.episodes).flat();
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function getSections() {
