@@ -13,6 +13,20 @@ function injectScript(file_path, tag = 'body') {
   node.appendChild(script);
 }
 
+function addStyle(url) {
+  var css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.crossOrigin = 'anonymous';
+
+  css.href = url;
+
+  document.getElementsByTagName('head')[0].appendChild(css);
+}
+
 injectScript(chrome.runtime.getURL('firebase-app.js'));
 injectScript(chrome.runtime.getURL('firebase-firestore.js'));
 injectScript(chrome.runtime.getURL('main.js'));
+
+addStyle(
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css'
+);

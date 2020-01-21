@@ -1,5 +1,5 @@
 // Start of code execution is after comment START_EXECUTION
-let sectionsSnapshot;
+let sectionsSnapshot = [];
 let clearButtonEventListenerSet = false;
 let episodesTotalTime = 0;
 let episodesCount = 0;
@@ -65,6 +65,49 @@ function createAnchor(downloadURL, fileName, inNewTab = true) {
   a.download = fileName + extension;
   a.innerText = fileName + extension;
   return a;
+}
+
+function createListOfAnchors(anchors, listTitle, faIcon) {
+  const list = document.createElement('ul');
+
+  anchors.forEach(a => {
+    const listItem = document.createElement('li');
+    listItem.appendChild(a);
+    list.appendChild(listItem);
+  });
+
+  const title = document.createElement('a');
+
+  title.href = '#';
+  title.innerText = listTitle + '&nbsp;';
+
+  const icon = document.createElement('i');
+  icon.classList.add('fas');
+  icon.classList.add(`fa-${faIcon}`);
+
+  const iconSpan = document.createElement('span');
+  iconSpan.innerText = listTitle + ' ';
+  iconSpan.appendChild(icon);
+  iconSpan.classList.add('icon_span');
+
+  const li = document.createElement('li');
+  // li.appendChild(title);
+  li.appendChild(iconSpan);
+  li.appendChild(list);
+
+  return li;
+}
+
+function createDropDownLists(lists) {
+  const ul = document.createElement('ul');
+
+  lists.forEach(l => {
+    ul.appendChild(l);
+  });
+
+  ul.classList.add('dropDownList');
+
+  return ul;
 }
 
 async function getEpisodes() {
@@ -346,9 +389,15 @@ function processEpisodes() {
   const totalHours = Math.floor(totalMinutes / 60);
   const leftMinutes = totalMinutes - totalHours * 60;
 
-  document.querySelector(
-    'body > div > div > div > div > div._main > div.Contents > div._summary'
-  ).innerText = `${episodesCount} episodes / ${totalHours}h${leftMinutes}m`;
+  if (
+    document.querySelector(
+      'body > div > div > div > div > div._main > div.Contents > div._summary'
+    )
+  ) {
+    document.querySelector(
+      'body > div > div > div > div > div._main > div.Contents > div._summary'
+    ).innerText = `${episodesCount} episodes / ${totalHours}h${leftMinutes}m`;
+  }
 }
 
 const firebaseConfig = {
@@ -424,7 +473,6 @@ async function main() {
   document.querySelector('#showAll').addEventListener('change', () => {
     filterOn = !filterOn;
     writeToFirestore();
-    processEpisodes();
   });
   //------------------------------------------------------------
 
@@ -433,7 +481,6 @@ async function main() {
     sectionsSnapshot = doc.data().sectionsSnapshot;
     filterOn = doc.data().filterOn;
     updateSnapshot();
-    processEpisodes();
   });
   //------------------------------------------------------------
 
@@ -445,8 +492,6 @@ async function main() {
     .addEventListener('input', () =>
       // if not using setTimeout, origin code overwrites result
       setTimeout(() => {
-        processEpisodes();
-
         // add event listener on clear button
         const clearButton = document.querySelector(
           'body > div > div > div > div > div._main > div.Contents > div.bp3-input-group.SearchBox > span.bp3-input-action > button'
@@ -454,12 +499,6 @@ async function main() {
         if (clearButton && !clearButtonEventListenerSet) {
           // if there is clear button and it's not yet set, then add event listener
           clearButtonEventListenerSet = true;
-          clearButton.addEventListener('click', () => {
-            // if not using setTimeout, origin code overwrites result
-            setTimeout(() => {
-              processEpisodes();
-            }, 0);
-          });
         } else if (!clearButton && clearButtonEventListenerSet) {
           // if there is no clear button and it's been set, then reset variable so next time it can be set
           clearButtonEventListenerSet = false;
@@ -469,3 +508,84 @@ async function main() {
     );
   //------------------------------------------------------------
 }
+
+function attachVideoAndSubtitleDropDownLists() {
+  const newCurrentURL = window.location.href;
+
+  if (episodes.length === 0 || newCurrentURL === currentURL) {
+    return;
+  }
+
+  currentURL = newCurrentURL;
+
+  let urlSlug = currentURL.split('video-course/watch/')[1];
+
+  const episode = urlSlug
+    ? episodes.find(e => e.slug === urlSlug)
+    : episodes[0];
+
+  if (!urlSlug) {
+    urlSlug = episode.slug;
+  }
+
+  const hasSubtitles = episode && episode.has_subtitles;
+  const subtitles = hasSubtitles ? episode.tracks : null;
+
+  const downloads = episode ? episode.downloads : {};
+
+  const videoAnchors = [];
+  const subtitleAnchors = [];
+
+  Object.keys(downloads).forEach(key => {
+    const downloadURL = downloads[key].url;
+    const quality = downloads[key].key;
+
+    const a = createAnchor(downloadURL, quality);
+    videoAnchors.push(a);
+  });
+
+  if (subtitles) {
+    subtitles.forEach(s => {
+      const downloadURL = s.url;
+      const label = s.label;
+
+      const a = createAnchor(downloadURL, label);
+
+      subtitleAnchors.push(a);
+    });
+  }
+
+  const videoList = createListOfAnchors(videoAnchors, 'Download', 'download');
+  const subtitleList = createListOfAnchors(
+    subtitleAnchors,
+    'Subtitles',
+    'file-download'
+  );
+
+  const lists = [];
+
+  lists.push(videoList);
+
+  if (hasSubtitles) {
+    lists.push(subtitleList);
+  }
+
+  const completeUl = createDropDownLists(lists);
+
+  const placeForDropDownLists = document.querySelector(
+    'body > div > div > div > div > div.TopBar > div > div.bp3-navbar-group.bp3-align-right'
+  );
+
+  const dropDownLists = placeForDropDownLists.querySelectorAll('.dropDownList');
+
+  if (dropDownLists.length > 0) {
+    dropDownLists.forEach(d => d.remove());
+  }
+
+  placeForDropDownLists.appendChild(completeUl);
+}
+
+setInterval(async () => {
+  processEpisodes();
+  attachVideoAndSubtitleDropDownLists();
+}, 50);

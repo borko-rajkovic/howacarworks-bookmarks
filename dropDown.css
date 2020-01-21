@@ -1,0 +1,68 @@
+ul {
+  display: flex;
+  list-style: none;
+  padding-left: 0;
+}
+
+li {
+  padding: 0.5rem;
+  display: block;
+  color: #fff;
+  position: relative;
+}
+
+li:hover,
+li:focus-within {
+  cursor: pointer;
+}
+
+/* hide outline when focussing on link; not a problem because we are providing custom focus state */
+li:focus-within a {
+  outline: none;
+}
+
+/* Hide the sub menu*/
+ul li ul {
+  background: inherit;
+  visibility: hidden;
+  opacity: 0;
+  min-width: 5rem;
+  position: absolute;
+  transition: all 0.5s ease;
+  margin-top: 0.5rem;
+  left: 0;
+  display: none;
+}
+
+/* Show submenu on hover and focus */
+ul li:hover > ul,
+ul li:focus-within > ul,
+ul li ul:hover,
+ul li ul:focus {
+  background-color: aliceblue;
+  visibility: visible;
+  opacity: 1;
+  display: block;
+}
+
+ul li ul li:hover {
+  background-color: lightblue;
+}
+
+ul li ul li {
+  width: 100%;
+}
+
+a {
+  padding: 0.5rem;
+  text-decoration: none;
+  font-family: sans-serif;
+}
+
+.icon_span {
+  color: #48aff0;
+}
+
+.icon_span:hover {
+  color: #106ba3;
+}

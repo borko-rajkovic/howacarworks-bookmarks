@@ -16,7 +16,7 @@
       "matches": ["https://www.howacarworks.com/video-course/watch*"],
       "js": ["inject.js"],
       "run_at": "document_idle",
-      "css": ["styles.css", "toggle.css", "checkbox.css"]
+      "css": ["styles.css", "toggle.css", "checkbox.css", "dropDown.css"]
     }
   ],
   "web_accessible_resources": [
