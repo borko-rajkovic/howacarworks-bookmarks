@@ -50,6 +50,21 @@ function createElementFromHTML(htmlString) {
   return div.firstChild;
 }
 
+function createAnchor(downloadURL, fileName, inNewTab = true) {
+  const a = document.createElement('a');
+  a.href = downloadURL;
+
+  if (inNewTab) {
+    a.target = '_blank';
+  }
+
+  const extension = downloadURL.match(/.*(\..*)/)[1];
+
+  a.download = fileName + extension;
+  a.innerText = fileName + extension;
+  return a;
+}
+
 function getSections() {
   // Get all sections from page
   const sectionsRaw = document.querySelectorAll(
