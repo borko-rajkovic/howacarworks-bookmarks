@@ -8,6 +8,7 @@ let userEmail;
 let firestoreDoc;
 let filterOn = false;
 let episodes = [];
+let duplicateEpisodes = {};
 let currentURL;
 
 // Toggle switch
@@ -237,7 +238,12 @@ function updateSnapshot() {
   writeToFirestore();
 }
 
-function processSingleEpisode(episodeFromSnapshot, episodeName, episode) {
+function processSingleEpisode(
+  episodeFromSnapshot,
+  episodeName,
+  episode,
+  duplicateIndex
+) {
   if (!episodeFromSnapshot) {
     return;
   }
@@ -314,7 +320,7 @@ function processSingleEpisode(episodeFromSnapshot, episodeName, episode) {
       const episodeForUpdate = sectionsSnapshot
         .map(s => s.EPISODES)
         .reduce((acc, val) => acc.concat(val), [])
-        .find(e => e.name === episodeName.innerHTML);
+        .filter(e => e.name === episodeName.innerHTML)[duplicateIndex];
 
       episodeForUpdate.finished = input.checked;
 
@@ -334,6 +340,8 @@ function processSingleEpisode(episodeFromSnapshot, episodeName, episode) {
 }
 
 function processEpisodes() {
+  duplicateEpisodes = {};
+
   // Get all sections from page
   const sectionsRaw = document.querySelectorAll(
     'body > div > div > div > div > div._main > div.Contents >div.Section'
@@ -358,11 +366,36 @@ function processEpisodes() {
             'div._content > div._title'
           );
 
-          const episodeFromSnapshot = sectionFromSnapshot.EPISODES.find(
-            e => e.name === episodeName.innerHTML
-          );
+          const episodesWithSameName = sectionsSnapshot
+            .map(s => s.EPISODES)
+            .reduce((acc, val) => acc.concat(val), [])
+            .filter(e => e.name === episodeName.innerHTML);
 
-          processSingleEpisode(episodeFromSnapshot, episodeName, episode);
+          let episodeFromSnapshot;
+          let duplicateIndex = 0;
+
+          if (episodesWithSameName.length === 1) {
+            episodeFromSnapshot = sectionFromSnapshot.EPISODES.find(
+              e => e.name === episodeName.innerHTML
+            );
+          } else {
+            if (!duplicateEpisodes[episodeName.innerHTML]) {
+              duplicateEpisodes[episodeName.innerHTML] = 0;
+            }
+
+            duplicateIndex = duplicateEpisodes[episodeName.innerHTML];
+
+            episodeFromSnapshot =
+              episodesWithSameName[duplicateEpisodes[episodeName.innerHTML]];
+            duplicateEpisodes[episodeName.innerHTML]++;
+          }
+
+          processSingleEpisode(
+            episodeFromSnapshot,
+            episodeName,
+            episode,
+            duplicateIndex
+          );
         });
       }
     });
@@ -374,12 +407,37 @@ function processEpisodes() {
     filteredEpisodes.forEach(episode => {
       const episodeName = episode.querySelector('div._content > div._title');
 
-      const episodeFromSnapshot = sectionsSnapshot
+      const episodesWithSameName = sectionsSnapshot
         .map(s => s.EPISODES)
         .reduce((acc, val) => acc.concat(val), [])
-        .find(e => e.name === episodeName.innerHTML);
+        .filter(e => e.name === episodeName.innerHTML);
 
-      processSingleEpisode(episodeFromSnapshot, episodeName, episode);
+      let episodeFromSnapshot;
+      let duplicateIndex = 0;
+
+      if (episodesWithSameName.length === 1) {
+        episodeFromSnapshot = sectionsSnapshot
+          .map(s => s.EPISODES)
+          .reduce((acc, val) => acc.concat(val), [])
+          .find(e => e.name === episodeName.innerHTML);
+      } else {
+        if (!duplicateEpisodes[episodeName.innerHTML]) {
+          duplicateEpisodes[episodeName.innerHTML] = 0;
+        }
+
+        duplicateIndex = duplicateEpisodes[episodeName.innerHTML];
+
+        episodeFromSnapshot =
+          episodesWithSameName[duplicateEpisodes[episodeName.innerHTML]];
+        duplicateEpisodes[episodeName.innerHTML]++;
+      }
+
+      processSingleEpisode(
+        episodeFromSnapshot,
+        episodeName,
+        episode,
+        duplicateIndex
+      );
     });
   }
 
