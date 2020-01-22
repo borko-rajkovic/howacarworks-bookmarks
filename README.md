@@ -35,10 +35,12 @@
 ### Before
 
 ![Before](./not_for_zip/Before.gif)
+![Before2](./not_for_zip/Before2.gif)
 
 ### After
 
 ![After](./not_for_zip/After.gif)
+![After2](./not_for_zip/After2.gif)
 
 <!-- CONTRIBUTING -->
 
