@@ -2,7 +2,7 @@
   "name": "howacarworks.com bookmarks",
   "short_name": "howacarworks",
   "description": "Bookmarks for the website howacarworks.com",
-  "version": "0.0.0.1",
+  "version": "0.0.0.2",
   "permissions": ["activeTab"],
   "browser_action": {
     "default_icon": {
